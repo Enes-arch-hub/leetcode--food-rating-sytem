@@ -1,0 +1,65 @@
+public class Main {
+    import java.util.*;
+
+class FoodRatingSystem {
+
+    private static class Food {
+        String cuisine;
+        int rating;
+
+        Food(String cuisine, int rating) {
+            this.cuisine = cuisine;
+            this.rating = rating;
+        }
+    }
+
+    private Map<String, Food> foodInfo = new HashMap<>();
+    private Map<String, PriorityQueue<String>> cuisineHeaps = new HashMap<>();
+
+    public FoodRatingSystem(String[] foods, String[] cuisines, int[] ratings) {
+
+        for (int i = 0; i < foods.length; i++) {
+            String food = foods[i];
+            String cuisine = cuisines[i];
+            int rating = ratings[i];
+
+            foodInfo.put(food, new Food(cuisine, rating));
+
+            cuisineHeaps.putIfAbsent(cuisine,
+                new PriorityQueue<>((a, b) -> {
+                    int r1 = foodInfo.get(a).rating;
+                    int r2 = foodInfo.get(b).rating;
+                    if (r1 != r2) return r2 - r1;
+                    return a.compareTo(b); // lexicographically smaller if tie
+                })
+            );
+
+            cuisineHeaps.get(cuisine).offer(food);
+        }
+    }
+
+    public void updateRating(String food, int newRating) {
+        Food f = foodInfo.get(food);
+        f.rating = newRating;
+        cuisineHeaps.get(f.cuisine).offer(food);  // push new entry
+    }
+
+    public String highestRated(String cuisine) {
+        PriorityQueue<String> pq = cuisineHeaps.get(cuisine);
+
+        while (true) {
+            String top = pq.peek();
+            int heapRating = foodInfo.get(top).rating;
+
+            // Check if top matches the actual rating
+            // The comparator ensures this is correct
+            pq.poll();
+            pq.offer(top);
+
+            return pq.peek();
+        }
+    }
+}
+
+    
+}
